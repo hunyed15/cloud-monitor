@@ -201,6 +201,15 @@ cloud-monitor/
 | GET/POST | `/api/notifications` | 通知渠道 |
 | GET/PUT | `/api/settings` | 全局设置 |
 
+## 鸣谢
+
+本项目在开发过程中得到了以下项目和服务的大力支持：
+
+- [**WorkBuddy**](https://www.codebuddy.cn/work/) — 腾讯出品的 AI 桌面智能体工作台，本项目的绝大部分代码由 WorkBuddy 驱动的 GLM-5.1 生成
+- [**GLM-5.1**](https://github.com/zai-org/GLM-5) — 智谱 AI 开源旗舰模型，提供了强大的代码生成与工程推理能力
+- [**Cloudflare Workers**](https://workers.cloudflare.com/) — 提供免费的 Serverless 计算资源，使本项目零成本运行
+- [**智简魔方 (ZJMF)**](https://www.idcsmart.com/) — 魔方财务系统提供了服务器管理的 API 接口，是监控与自动恢复能力的基石
+
 ## 许可证
 
 MIT License
