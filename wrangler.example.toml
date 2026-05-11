@@ -1,0 +1,31 @@
+name = "cloud-monitor"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+
+# ========== 免费的 D1 数据库 ==========
+# 部署前需要先创建数据库：
+#   wrangler d1 create cloud-monitor-db
+# 然后用输出的 database_id 替换下面的 ID
+[[d1_databases]]
+binding = "DB"
+database_name = "cloud-monitor-db"
+database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # ← 替换为 wrangler d1 create 输出的 ID
+
+# ========== 免费的 KV 存储（用于 JWT 会话缓存） ==========
+# 部署前需要先创建 KV 命名空间：
+#   wrangler kv namespace create cloud-monitor-kv
+# 然后用输出的 id 替换下面的 ID
+[[kv_namespaces]]
+binding = "KV"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # ← 替换为 wrangler kv namespace create 输出的 ID
+
+# ========== 免费的 Cron Triggers ==========
+# 每分钟检查一次 | 免费计划最多 3 个 Cron 触发器
+[triggers]
+crons = ["* * * * *"]
+
+# ========== 环境变量 ==========
+# 生产环境务必通过 wrangler secret put JWT_SECRET 设置
+# 此处仅用于本地开发
+[vars]
+JWT_SECRET = "change-me-in-production"
