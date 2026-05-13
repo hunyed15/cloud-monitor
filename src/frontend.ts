@@ -883,14 +883,15 @@ Router.register('/monitors/new', async function(ctx) {
     if (wizardStep === 1) {
       var providerOpts = '<option value="">-- 请选择 --</option>';
       (App.state.providers || []).forEach(function(p) {
-        providerOpts += '<option value="' + p.id + '">' + App.esc(p.display_name || p.name) + ' (' + p.type + ')</option>';
+        providerOpts += '<option value="' + p.id + '">' + App.esc(p.display_name || p.name) + ' (' + (p.type === 'whmcs' ? 'WHMCS' : 'ZJMF') + ')</option>';
       });
       el.innerHTML =
         '<div class="form-group"><label class="form-label">选择已有服务商</label><select class="form-select" id="wiz-provider-id">' + providerOpts + '</select></div>' +
         '<div style="text-align:center;color:var(--muted);margin:16px 0;font-size:12px">— 或者 —</div>' +
-        '<div class="form-group"><label class="form-label">新建 ZJMF 服务商</label>' +
+        '<div class="form-group"><label class="form-label">新建服务商</label>' +
+          '<div style="margin-bottom:8px"><select class="form-select" id="wiz-p-type"><option value="zjmf">魔方财务 (ZJMF)</option><option value="whmcs">WHMCS</option></select></div>' +
           '<div style="display:flex;gap:8px;margin-bottom:8px"><input class="form-input" id="wiz-p-name" placeholder="标识名 (如 heyunidc)" style="flex:1"><input class="form-input" id="wiz-p-display" placeholder="显示名 (如 核云)" style="flex:1"></div>' +
-          '<input class="form-input" id="wiz-p-url" placeholder="API 地址 (如 https://www.heyunidc.com/api)" style="width:100%;margin-bottom:8px">' +
+          '<input class="form-input" id="wiz-p-url" placeholder="API 地址 (如 https://www.heyunidc.cn/v1)" style="width:100%;margin-bottom:8px">' +
           '<div style="display:flex;gap:8px"><input class="form-input" id="wiz-p-account" placeholder="登录账号" style="flex:1"><input class="form-input" id="wiz-p-password" type="password" placeholder="API 密码" style="flex:1"></div>' +
           '<div style="margin-top:12px"><button class="btn btn-ghost" onclick="wizTestNewProvider()">测试连接</button></div>' +
         '</div>' +
@@ -978,7 +979,8 @@ Router.register('/monitors/new', async function(ctx) {
       var name = document.getElementById('wiz-p-name').value.trim() || ('provider_' + Date.now());
       var displayName = document.getElementById('wiz-p-display').value.trim() || name;
       // 先创建服务商
-      var result = await App.api('/providers', { method: 'POST', body: JSON.stringify({ type: 'zjmf', name: name, display_name: displayName, api_base_url: url, api_account: account, api_password: password }) });
+      var wizType = document.getElementById('wiz-p-type') ? document.getElementById('wiz-p-type').value : 'zjmf';
+      var result = await App.api('/providers', { method: 'POST', body: JSON.stringify({ type: wizType, name: name, display_name: displayName, api_base_url: url, api_account: account, api_password: password }) });
       // 再测试连接
       try {
         await App.api('/providers/' + result.id + '/test', { method: 'POST' });
@@ -1343,7 +1345,7 @@ Router.register('/settings', async function(ctx) {
         rowsHtml = '<div class="table-wrap"><table><thead><tr><th>名称</th><th>类型</th><th>API 地址</th><th>状态</th><th>操作</th></tr></thead><tbody>';
         provs.forEach(function(p) {
           rowsHtml += '<tr><td style="font-weight:600">' + App.esc(p.display_name || p.name) + '</td>' +
-            '<td><span style="font-family:var(--font-mono);font-size:12px">' + p.type + '</span></td>' +
+            '<td><span class="state-tag" style="background:var(--primary-dim);color:var(--primary)">' + (p.type === 'whmcs' ? 'WHMCS' : 'ZJMF') + '</span></td>' +
             '<td style="font-size:12px;color:var(--text-secondary)">' + App.esc(p.api_base_url) + '</td>' +
             '<td>' + (p.enabled ? '<span style="color:var(--success)">✓ 启用</span>' : '<span style="color:var(--muted)">✗ 禁用</span>') + '</td>' +
             '<td><button class="btn btn-xs btn-ghost" onclick="testProvider(' + p.id + ')">测试</button>' +
@@ -1445,9 +1447,10 @@ Router.register('/settings', async function(ctx) {
 
     window.showAddProvider = function() {
       App.modal('添加服务商',
+        '<div class="form-group"><label class="form-label">平台类型</label><select class="form-select" id="ap-type"><option value="zjmf">魔方财务 (ZJMF)</option><option value="whmcs">WHMCS</option></select></div>' +
         '<div class="form-group"><label class="form-label">标识名</label><input class="form-input" id="ap-name" placeholder="如 heyunidc"></div>' +
         '<div class="form-group"><label class="form-label">显示名称</label><input class="form-input" id="ap-display" placeholder="如 核云"></div>' +
-        '<div class="form-group"><label class="form-label">API 地址</label><input class="form-input" id="ap-url" placeholder="https://www.heyunidc.com/api"></div>' +
+        '<div class="form-group"><label class="form-label">API 地址</label><input class="form-input" id="ap-url" placeholder="https://www.heyunidc.cn/v1"></div>' +
         '<div class="form-group"><label class="form-label">登录账号</label><input class="form-input" id="ap-account"></div>' +
         '<div class="form-group"><label class="form-label">API 密码</label><input class="form-input" id="ap-password" type="password"></div>',
         '<button class="btn btn-ghost" onclick="App.closeModal()">取消</button><button class="btn btn-primary" onclick="doAddProvider()">添加</button>');
@@ -1456,7 +1459,7 @@ Router.register('/settings', async function(ctx) {
     window.doAddProvider = async function() {
       try {
         await App.api('/providers', { method: 'POST', body: JSON.stringify({
-          type: 'zjmf', name: document.getElementById('ap-name').value.trim(),
+          type: document.getElementById('ap-type').value, name: document.getElementById('ap-name').value.trim(),
           display_name: document.getElementById('ap-display').value.trim(),
           api_base_url: document.getElementById('ap-url').value.trim(),
           api_account: document.getElementById('ap-account').value.trim(),
@@ -1476,6 +1479,7 @@ Router.register('/settings', async function(ctx) {
       try {
         var p = await App.api('/providers/' + id);
         App.modal('编辑服务商',
+          '<div class="form-group"><label class="form-label">平台类型</label><select class="form-select" id="ep-type"><option value="zjmf"' + (p.type === 'zjmf' ? ' selected' : '') + '>魔方财务 (ZJMF)</option><option value="whmcs"' + (p.type === 'whmcs' ? ' selected' : '') + '>WHMCS</option></select></div>' +
           '<div class="form-group"><label class="form-label">显示名称</label><input class="form-input" id="ep-display" value="' + App.esc(p.display_name) + '"></div>' +
           '<div class="form-group"><label class="form-label">API 地址</label><input class="form-input" id="ep-url" value="' + App.esc(p.api_base_url) + '"></div>' +
           '<div class="form-group"><label class="form-label">登录账号</label><input class="form-input" id="ep-account" value="' + App.esc(p.api_account) + '"></div>' +
@@ -1487,7 +1491,7 @@ Router.register('/settings', async function(ctx) {
 
     window.doEditProvider = async function(id) {
       try {
-        var data = { display_name: document.getElementById('ep-display').value.trim(), api_base_url: document.getElementById('ep-url').value.trim(), api_account: document.getElementById('ep-account').value.trim(), enabled: parseInt(document.getElementById('ep-enabled').value) };
+        var data = { type: document.getElementById('ep-type').value, display_name: document.getElementById('ep-display').value.trim(), api_base_url: document.getElementById('ep-url').value.trim(), api_account: document.getElementById('ep-account').value.trim(), enabled: parseInt(document.getElementById('ep-enabled').value) };
         var pwd = document.getElementById('ep-password').value; if (pwd) data.api_password = pwd;
         await App.api('/providers/' + id, { method: 'PUT', body: JSON.stringify(data) });
         App.closeModal(); App.toast('已更新', 'success');
