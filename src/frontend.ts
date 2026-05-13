@@ -398,7 +398,8 @@ var App = {
     if (App.token) headers['Authorization'] = 'Bearer ' + App.token;
     return fetch('/api' + path, Object.assign({}, opts, { headers: headers }))
       .then(function(r) {
-        if (r.status === 401) { App.logout(); throw new Error('认证已过期'); }
+        // 登录接口的 401 表示凭据错误，不走自动登出逻辑，走正常错误解析
+        if (r.status === 401 && path !== '/auth/login') { App.logout(); throw new Error('认证已过期'); }
         if (!r.ok) {
           // 尝试解析 JSON 错误消息，非 JSON 响应给友好提示
           var ct = r.headers.get('content-type') || '';
