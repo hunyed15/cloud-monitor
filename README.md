@@ -132,6 +132,18 @@ npx wrangler deploy
 npx wrangler dev
 ```
 
+## 更新
+
+已部署的项目更新到最新版本：
+
+```bash
+git pull
+npx wrangler d1 migrations apply cloud-monitor-db  # 如有数据库变更
+npx wrangler deploy
+```
+
+> 💡 数据库迁移是幂等的，已执行过的迁移不会重复执行，可放心每次都运行。
+
 ## 使用指南
 
 ### 添加服务商
