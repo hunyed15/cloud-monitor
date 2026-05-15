@@ -699,7 +699,7 @@ Router.register('/dashboard', async function(ctx) {
         var rt = m.runtime || {};
         var state = rt.state || 'healthy';
         serverCardsHtml +=
-          '<div class="server-card" onclick="location.hash=\\'#/monitors/' + m.id + '\\'"' +
+          '<div class="server-card" onclick="location.hash=\\'#/monitors/' + m.id + '\\'">' +
             '<div class="sc-indicator"><span class="pulse ' + state + '"></span></div>' +
             '<div class="sc-info">' +
               '<div class="sc-name"><span class="state-tag ' + state + '">' + App.stateLabel(state) + '</span>' + App.esc(m.name) + '</div>' +
@@ -714,7 +714,7 @@ Router.register('/dashboard', async function(ctx) {
             '<div class="sc-actions" onclick="if(event)event.stopPropagation()">' +
               (state !== 'healthy' ? '<button class="btn btn-xs btn-success" data-mid="' + m.id + '" onclick="powerAction(' + m.id + ',\\'on\\')">开机</button>' : '') +
               '<button class="btn btn-xs btn-ghost" data-mid="' + m.id + '" onclick="powerAction(' + m.id + ',\\'reboot\\')">重启</button>' +
-              '<button class="btn btn-xs btn-ghost" onclick="location.hash=\\'#/monitors/' + m.id + '\\'"">详情</button>' +
+              '<button class="btn btn-xs btn-ghost" onclick="location.hash=\\'#/monitors/' + m.id + '\\'">详情</button>' +
             '</div>' +
           '</div>';
       });
